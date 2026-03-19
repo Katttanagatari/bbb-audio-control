@@ -1,0 +1,37 @@
+{
+  "manifest_version": 3,
+  "name": "BBB Audio Control",
+  "version": "1.0",
+  "description": "Ползунок громкости для BBB конференций",
+  "author": "katttanagatari",
+  "homepage_url": "https://github.com/katttanagatari/bbb-audio-control",
+  "content_scripts": [
+    {
+      "matches": [
+        "https://bbb300.ssau.ru/*",
+        "https://bbb301.ssau.ru/*",
+        "https://bbb302.ssau.ru/*",
+        "https://bbb303.ssau.ru/*",
+        "https://bbb304.ssau.ru/*",
+        "https://bbb305.ssau.ru/*",
+        "https://bbb306.ssau.ru/*",
+        "https://bbb307.ssau.ru/*",
+        "https://bbb308.ssau.ru/*",
+        "https://bbb309.ssau.ru/*",
+        "https://bbb310.ssau.ru/*",
+        "https://bbb311.ssau.ru/*",
+        "https://bbb312.ssau.ru/*",
+        "https://bbb313.ssau.ru/*",
+        "https://bbb314.ssau.ru/*",
+        "https://bbb315.ssau.ru/*",
+        "https://bbb316.ssau.ru/*",
+        "https://bbb317.ssau.ru/*",
+        "https://bbb318.ssau.ru/*",
+        "https://bbb319.ssau.ru/*",
+        "https://bbb320.ssau.ru/*"
+      ],
+      "js": ["content.js"],
+      "run_at": "document_end"
+    }
+  ]
+}
