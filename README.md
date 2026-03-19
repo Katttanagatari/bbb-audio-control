@@ -1,7 +1,9 @@
 # bbb-audio-control
 extension for audio volume control for SSAU BBB subdomains
 
-Расширение для управления громкостью в BigBlueButton конференциях СГАУ (SSAU). Устанавливает единую громкость для аудио и видео.
+![image](https://github.com/user-attachments/assets/43d1b979-e7cb-470a-901d-5fa0d983b6d7)
+
+Расширение для управления громкостью в BigBlueButton конференциях SSAU. Устанавливает единую громкость для аудио и видео.
 
 ## Установка
 Скачайте расширение через git clone или code -> download zip
