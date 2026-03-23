@@ -2,7 +2,8 @@
  * Volume Controller for BigBlueButton
  * @author katttanagatari
  **/
-(function() {
+// audio-control.js
+export function audioControl() {
   'use strict';
 
   const CONFIG = {
@@ -174,7 +175,7 @@
         ? 'sc-bdvvtL goIptw icon-bbb-volume_up'
         : 'sc-bdvvtL goIptw icon-bbb-volume_off';
     }
-    console.log('everything works fine)');
+    console.log('everything works fine))');
   }
     init();
-})();
+};
