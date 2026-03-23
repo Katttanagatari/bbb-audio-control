@@ -2,8 +2,7 @@
  * Volume Controller for BigBlueButton
  * @author katttanagatari
  **/
-// audio-control.js
-export function audioControl() {
+(function() {
   'use strict';
 
   const CONFIG = {
@@ -178,4 +177,4 @@ export function audioControl() {
     console.log('everything works fine)');
   }
     init();
-};
+})();
