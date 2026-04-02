@@ -9,8 +9,7 @@ export function audioControl() {
     selectors: {
       target: '[accesskey="A"]', // main element
       remoteMedia: '#remote-media', // audio element
-      // videoPlayer: '#video-player', // video element  /*       */
-      // testForVideo: '.ecDTED'  /*       */
+      videoPlayer: '#video-player video', // video element  /*       */
     },
     slider: {
       min: 0, // min volume value
@@ -47,10 +46,6 @@ export function audioControl() {
     const targetEl = document.querySelector(CONFIG.selectors.target);  // main element selector
     const remoteMediaEl = document.getElementById(CONFIG.selectors.remoteMedia.replace('#', '')); // audio selector
 
-    // const testForVideo = document.querySelector(CONFIG.selectors.testForVideo);
-    // const videoPlayerEl = document.getElementById(CONFIG.selectors.videoPlayer.replace('#', '')); // video selector
-
-
     if (!targetEl || !remoteMediaEl) { // until find targetElement
       return setTimeout(init, CONFIG.retryDelay);
     }
@@ -78,6 +73,8 @@ export function audioControl() {
     sliderWrapper.appendChild(slider);
     container.appendChild(btn);
     targetEl.parentNode.insertBefore(container, targetEl);
+
+    initStateWatcher(slider);
 
     return {container, sliderWrapper, slider, btn};
   };
@@ -138,16 +135,15 @@ export function audioControl() {
     return el;
   };
   
-
   /**
    * Bind all UI events
    * @param {Object} ui - UI elements object
    * @param {HTMLElement} audioEl - audio element to control
   **/
   function createEvents(ui,audioEl){
-    changeVolume(ui,audioEl);
+    changeVolume(ui);
     bindHoverEvents(ui);
-    bindMuteToggle(ui,audioEl);
+    bindMuteToggle(ui);
   };
 
   /**
@@ -155,13 +151,17 @@ export function audioControl() {
    * @param {Object} ui - UI elements object
    * @param {HTMLElement} audioEl - audio element to control volume
   **/
-  function changeVolume(ui,audioEl){
+  function changeVolume(ui){
     ui.slider.addEventListener('input', () => {
-      if (audioEl) {
-        audioEl.volume = ui.slider.value;  // set volume on handler
-        updateVolumeIcon(ui.btn, ui.slider.value);  // update icon
-        setVolumeInStorage(ui.slider.value);
-      }
+      const value = ui.slider.value;
+
+      const audio = document.querySelector(CONFIG.selectors.remoteMedia);
+      const video = document.querySelector(CONFIG.selectors.videoPlayer);
+
+      if (audio) audio.volume = value;
+      if (video) video.volume = value;
+      updateVolumeIcon(ui.btn, value);  // update icon
+      setVolumeInStorage(value);
     });
   };
 
@@ -186,25 +186,28 @@ export function audioControl() {
    * @param {Object} ui - UI elements object
    * @param {HTMLElement} audioEl - audio element to control
   **/
-  function bindMuteToggle(ui,audioEl) {
-    let isMuted = false; // flag
-    let tempSliderPosition = ui.slider.value; // temp slider value
+  function bindMuteToggle(ui) {
+    let isMuted = false;
+    let tempSliderPosition = ui.slider.value;
 
     ui.btn.addEventListener('click', () => {
-      if (!audioEl) return;
-
+      const audio = document.querySelector(CONFIG.selectors.remoteMedia);
+      const video = document.querySelector(CONFIG.selectors.videoPlayer);
       isMuted = !isMuted;
-      audioEl.muted = isMuted;
+      if (audio) audio.muted = isMuted;
+      if (video) video.muted = isMuted;
 
-      if (isMuted) { // save position while muted by click
+      if (isMuted) {
         tempSliderPosition = ui.slider.value;
         ui.slider.value = 0;
       } else {
         ui.slider.value = tempSliderPosition;
-        audioEl.volume = tempSliderPosition;
+
+        if (audio) audio.volume = tempSliderPosition;
+        if (video) video.volume = tempSliderPosition;
       }
 
-      updateVolumeIcon(ui.btn, ui.slider.value);   // update icon
+      updateVolumeIcon(ui.btn, ui.slider.value);
     });
   };
 
@@ -239,7 +242,62 @@ export function audioControl() {
     const result = await storage.local.get(['volume']);
     return result.volume ?? CONFIG.slider.defaultVolume;
   };
+  
 
+  function initStateWatcher(slider) {
+    let mode = null;
+
+    const removeDefaultSlider = () => {
+      document.querySelectorAll('input[type="range"]').forEach(input => {
+        const parent = input.closest('div');
+        if (parent && parent.querySelector('.icon-bbb-volume_up')) {
+          parent.remove();
+        }
+      });
+    };
+
+    const check = () => {
+      const presentation = document.getElementById('presentationInnerWrapper');
+      const videoContainer = document.getElementById('video-player');
+
+      if (presentation && !videoContainer) {
+        if (mode !== 'presentation') {
+          mode = 'presentation';
+        }
+        return;
+      }
+
+      if (videoContainer) {
+        const video = document.querySelector('#video-player video');
+
+        if (video) {
+          video.volume = parseFloat(slider.value);
+        }
+
+        removeDefaultSlider();
+
+        if (mode !== 'video') {
+          mode = 'video';
+          console.log(videoContainer);
+        }
+
+        return;
+      }
+
+      if (!presentation && !videoContainer) {
+        mode = null;
+      }
+    };
+
+    const observer = new MutationObserver(check);
+
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true
+    });
+
+    check();
+  }
 
   init();
 };
