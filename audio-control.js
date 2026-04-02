@@ -2,16 +2,21 @@
 export function audioControl() {
   'use strict';
 
+  const storage = (typeof browser !== 'undefined') 
+    ? browser.storage 
+    : chrome.storage;
   const CONFIG = {
     selectors: {
       target: '[accesskey="A"]', // main element
-      remoteMedia: '#remote-media' // audio element
+      remoteMedia: '#remote-media', // audio element
+      // videoPlayer: '#video-player', // video element  /*       */
+      // testForVideo: '.ecDTED'  /*       */
     },
     slider: {
       min: 0, // min volume value
       max: 1, // max volume value
       step: 0.01, // value change step 
-      defaultVolume: 0.5, // def volume
+      defaultVolume: 1, // def volume
       styles: {
         base: // styles for showing the slider
         `
@@ -38,17 +43,24 @@ export function audioControl() {
   /**
    * Initialize Volume Controller
   **/
-  function init() {
+  async function init() {
     const targetEl = document.querySelector(CONFIG.selectors.target);  // main element selector
     const remoteMediaEl = document.getElementById(CONFIG.selectors.remoteMedia.replace('#', '')); // audio selector
+
+    // const testForVideo = document.querySelector(CONFIG.selectors.testForVideo);
+    // const videoPlayerEl = document.getElementById(CONFIG.selectors.videoPlayer.replace('#', '')); // video selector
+
 
     if (!targetEl || !remoteMediaEl) { // until find targetElement
       return setTimeout(init, CONFIG.retryDelay);
     }
-    const ui = createUI(targetEl);
+
+    const defaultVolume = await getVolumeFromStorage();
+
+    const ui = createUI(targetEl, defaultVolume);
+    updateVolumeIcon(ui.btn, ui.slider.value);  // update icon
     createEvents(ui, remoteMediaEl);
-    
-  }
+  };
 
   /**
    * Create full UI (container, slider, button)
@@ -56,10 +68,10 @@ export function audioControl() {
    * @returns {Object} ui elements (container, sliderWrapper, slider, btn)
    **/
 
-  function createUI(targetEl){
+  function createUI(targetEl, defaultVolume){
     const container = createContainer();
     const sliderWrapper = createForInput();
-    const slider = createSlider();
+    const slider = createSlider(defaultVolume);
     const btn =  createBtn();
 
     container.appendChild(sliderWrapper);
@@ -101,13 +113,13 @@ export function audioControl() {
     return el;
   };
 
-  function createSlider(){
+  function createSlider(defaultVolume){
     const el = document.createElement('input');
     el.type = 'range';
     el.min = CONFIG.slider.min;
     el.max = CONFIG.slider.max;
     el.step = CONFIG.slider.step;
-    el.value = CONFIG.slider.defaultVolume;
+    el.value = defaultVolume;
     el.style.cssText = CONFIG.slider.styles.hidden;
 
     return el;
@@ -125,6 +137,7 @@ export function audioControl() {
 
     return el;
   };
+  
 
   /**
    * Bind all UI events
@@ -135,30 +148,27 @@ export function audioControl() {
     changeVolume(ui,audioEl);
     bindHoverEvents(ui);
     bindMuteToggle(ui,audioEl);
-
-  }
+  };
 
   /**
    * Handle volume change via slider
    * @param {Object} ui - UI elements object
    * @param {HTMLElement} audioEl - audio element to control volume
   **/
-
   function changeVolume(ui,audioEl){
     ui.slider.addEventListener('input', () => {
       if (audioEl) {
         audioEl.volume = ui.slider.value;  // set volume on handler
-        console.log(audioEl.volume)
         updateVolumeIcon(ui.btn, ui.slider.value);  // update icon
+        setVolumeInStorage(ui.slider.value);
       }
     });
-  }
+  };
 
   /**
    * Bind hover events to show/hide slider
    * @param {Object} ui - UI elements object
   **/
-
   function bindHoverEvents(ui){
     [ui.sliderWrapper, ui.btn].forEach(el => {
       el.addEventListener('mouseover', () => {
@@ -176,7 +186,6 @@ export function audioControl() {
    * @param {Object} ui - UI elements object
    * @param {HTMLElement} audioEl - audio element to control
   **/
-
   function bindMuteToggle(ui,audioEl) {
     let isMuted = false; // flag
     let tempSliderPosition = ui.slider.value; // temp slider value
@@ -197,15 +206,13 @@ export function audioControl() {
 
       updateVolumeIcon(ui.btn, ui.slider.value);   // update icon
     });
-  }
-
+  };
 
   /**
     * Update icon volume depending on volume level
     * @param {HTMLElement} button - button for update icon
     * @param {integer} volume - volume value
   **/
-   
   function updateVolumeIcon(btn, volume) {
     const icon = btn.querySelector('i');
       if (!icon) return;
@@ -215,5 +222,24 @@ export function audioControl() {
         ? 'sc-bdvvtL goIptw icon-bbb-volume_up'
         : 'sc-bdvvtL goIptw icon-bbb-volume_off';
   };
+
+  /**
+    * Save volume in real time
+    * @param {integer} volume - volume value which need to save
+  **/
+  function setVolumeInStorage(value){
+    chrome.storage.local.set({ volume: value })
+  };
+
+  /**
+    * Get volume after restarts page
+    * @returns {integer} volume - volume value on slider after last restart
+  **/
+  async function getVolumeFromStorage() {
+    const result = await storage.local.get(['volume']);
+    return result.volume ?? CONFIG.slider.defaultVolume;
+  };
+
+
   init();
 };

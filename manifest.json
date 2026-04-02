@@ -5,7 +5,9 @@
   "description": "Ползунок громкости для BBB конференций",
   "author": "katttanagatari",
   "homepage_url": "https://github.com/katttanagatari/bbb-audio-control",
-
+  "permissions": [
+    "storage"
+  ],
   "content_scripts": [
     {
       "matches": [
@@ -35,7 +37,6 @@
       "run_at": "document_end"
     }
   ],
-
   "web_accessible_resources": [
     {
       "resources": ["audio-control.js"],
