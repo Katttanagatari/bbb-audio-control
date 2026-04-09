@@ -39,7 +39,8 @@
   ],
   "web_accessible_resources": [
     {
-      "resources": ["audio-control.js"],
+      "resources": ["audio-control.js",
+                    "prepared-messages.js"],
       "matches": ["<all_urls>"]
     }
   ]
